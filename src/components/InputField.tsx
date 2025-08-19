@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import clsx from 'clsx';
 import { Eye, EyeOff, Loader2, X } from 'lucide-react';
+import '../index.css';
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     id: string;

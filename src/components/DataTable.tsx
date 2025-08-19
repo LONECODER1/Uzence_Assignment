@@ -1,6 +1,7 @@
 import * as React from "react";
 import type { Column, DataTableProps, SortDirection } from "../props/DataTable.props";
 import { compareValues } from "../utils/sort";
+import "../index.css"
 
 function useSortedData<T>(
   data: T[],
