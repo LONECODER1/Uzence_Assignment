@@ -53,15 +53,15 @@ export function DataTable<T>({
 
   const sorted = useSortedData<T>(data, columns, sortKey, sortDir);
 
-  // When data changes, purge selections that no longer exist
   React.useEffect(() => {
     if (!selectable || selectedIds.size === 0) return;
-    const valid = new Set(sorted.map(idOf).map((id, i) => idOf(sorted[i], i)));
+    const valid = new Set(sorted.map((item, i) => idOf(item, i)));
     const next = new Set(Array.from(selectedIds).filter(id => valid.has(id)));
-    if (next.size !== selectedIds.size) setSelectedIds(next);
+    if (next.size !== selectedIds.size) {
+      setSelectedIds(next);
+    }
   }, [sorted, selectable, selectedIds, idOf]);
 
-  // Fire callback with selected rows
   React.useEffect(() => {
     if (!onRowSelect) return;
     const selectedRows: T[] = [];
@@ -75,7 +75,6 @@ export function DataTable<T>({
     if (!col.sortable) return;
     const key = (col.key ?? null) as keyof T | null;
 
-    // Cycle: null -> asc -> desc -> null
     setSortKey(prevKey => {
       if (prevKey !== key) {
         setSortDir("asc");
@@ -110,15 +109,10 @@ export function DataTable<T>({
     setSelectedIds(prev => {
       const next = new Set(prev);
       if (selectionMode === "single") {
-        if (next.has(id)) {
-          next.clear();
-        } else {
-          next.clear();
-          next.add(id);
-        }
+        next.clear();
+        if (!prev.has(id)) next.add(id);
         return next;
       }
-      // multiple
       next.has(id) ? next.delete(id) : next.add(id);
       return next;
     });
@@ -145,12 +139,15 @@ export function DataTable<T>({
                 />
               </th>
             )}
+            {selectable && selectionMode === "single" && (
+              <th className="w-10 px-3 py-2"></th>
+            )}
             {columns.map((col, idx) => {
               const sortState = headerSortState(col);
               const ariaSort =
                 !col.sortable ? "none" :
-                sortState === "asc" ? "ascending" :
-                sortState === "desc" ? "descending" : "none";
+                  sortState === "asc" ? "ascending" :
+                    sortState === "desc" ? "descending" : "none";
 
               return (
                 <th
@@ -180,12 +177,11 @@ export function DataTable<T>({
           </tr>
         </thead>
 
-        {/* Loading */}
         {loading ? (
           <tbody>
             {[...Array(3)].map((_, r) => (
               <tr key={`skeleton-${r}`} className="border-b">
-                {selectable && selectionMode === "multiple" && (
+                {(selectable && (selectionMode === "multiple" || selectionMode === "single")) && (
                   <td className="px-3 py-3">
                     <div className="h-4 w-4 rounded bg-gray-200 animate-pulse" />
                   </td>
@@ -199,11 +195,10 @@ export function DataTable<T>({
             ))}
           </tbody>
         ) : sorted.length === 0 ? (
-          // Empty
           <tbody>
             <tr>
               <td
-                colSpan={columns.length + (selectable && selectionMode === "multiple" ? 1 : 0)}
+                colSpan={columns.length + (selectable ? 1 : 0)}
                 className="px-3 py-8 text-center text-gray-500"
               >
                 {emptyState ?? "No records found"}
@@ -211,7 +206,6 @@ export function DataTable<T>({
             </tr>
           </tbody>
         ) : (
-          // Data
           <tbody className="bg-white">
             {sorted.map((row, i) => {
               const id = idOf(row, i);
@@ -232,22 +226,32 @@ export function DataTable<T>({
                       />
                     </td>
                   )}
+                  {selectable && selectionMode === "single" && (
+                    <td className="px-3 py-2 align-middle">
+                      <input
+                        type="radio"
+                        name="datatable-single"
+                        className="h-4 w-4"
+                        aria-label={`Select row ${i + 1}`}
+                        checked={isSelected}
+                        onChange={() => toggleRow(row, i)}
+                      />
+                    </td>
+                  )}
 
-                  {/* For single selection, make row clickable */}
                   {columns.map((col, ci) => {
                     const content =
                       col.render
                         ? col.render(row)
                         : col.key
-                        ? (row as any)[col.key]
-                        : null;
+                          ? (row as any)[col.key]
+                          : null;
 
                     return (
                       <td
                         key={ci}
-                        className={`px-3 py-2 align-middle ${col.className ?? ""} ${
-                          selectable && selectionMode === "single" ? "cursor-pointer" : ""
-                        }`}
+                        className={`px-3 py-2 align-middle ${col.className ?? ""} ${selectable && selectionMode === "single" ? "cursor-pointer" : ""
+                          }`}
                         onClick={
                           selectable && selectionMode === "single"
                             ? () => toggleRow(row, i)

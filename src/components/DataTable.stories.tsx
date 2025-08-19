@@ -32,7 +32,7 @@ const meta: Meta<typeof DataTable<User>> = {
     loading: { control: "boolean" },
     selectable: { control: "boolean" },
     selectionMode: { control: { type: "radio" }, options: ["single", "multiple"] },
-    onRowSelect: { action: "onRowSelect" }, // 👈 Storybook Actions binding
+    onRowSelect: { action: "onRowSelect" }, 
   },
 };
 
@@ -87,6 +87,6 @@ export const Empty: Story = {
     data: [],
     columns,
     loading: false,
-    emptyState: "Nothing to show here 👀",
+    emptyState: "Nothing to show here...",
   },
 };
